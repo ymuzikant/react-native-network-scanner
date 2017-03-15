@@ -73,6 +73,15 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
                     onError.invoke(err.getMessage());
                 }
             }
+
+            @Override
+            public void onProgress(int progress, int total) {
+                WritableNativeMap progressInfo = new WritableNativeMap();
+                progressInfo.putInt("progress", progress);
+                progressInfo.putInt("total", total);
+
+                eventEmitter.emit("progress", progressInfo);
+            }
         });
     }
 }

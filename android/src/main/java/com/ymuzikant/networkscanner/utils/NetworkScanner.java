@@ -35,6 +35,8 @@ public class NetworkScanner {
         void onScanCompleted(ArrayList<NetworkDevice> devices);
 
         void onError(Exception err);
+
+        void onProgress(int progress, int total);
     }
 
     public void scan(Context context, final OnScanEventListener onScanEventListener) {
@@ -76,11 +78,11 @@ public class NetworkScanner {
         }
     }
 
-    private void scanSubnet(DhcpInfo dhcp, InterfaceAddress address, OnScanEventListener onScanEventListener) {
+    private void scanSubnet(DhcpInfo dhcp, InterfaceAddress address, final OnScanEventListener onScanEventListener) {
         final ArrayList<NetworkDevice> devices = new ArrayList<>();
 
         short subnetPrefixLength = address.getNetworkPrefixLength();
-        int numOfDevicesInSubnet = (int) (Math.pow(2, 32 - subnetPrefixLength) - 2);
+        final int numOfDevicesInSubnet = (int) (Math.pow(2, 32 - subnetPrefixLength) - 2);
 
         if (numOfDevicesInSubnet <= 0) {
             Log.w(TAG, "No devices available for scan in subnet. scan aborted");
@@ -96,7 +98,13 @@ public class NetworkScanner {
 
         Log.d(TAG, address + ", " + subnetPrefixLength + " ==> " + mask + " [" + getIpAddress(mask) + "]");
 
-        CountDownLatch pingCounter = new CountDownLatch(numOfDevicesInSubnet);
+        DeviceScanCountDownLatch pingCounter = new DeviceScanCountDownLatch(new DeviceScanCountDownLatch.OnCountDownListener() {
+            @Override
+            public void onCountDown(int count) {
+                onScanEventListener.onProgress(numOfDevicesInSubnet - count, numOfDevicesInSubnet);
+            }
+        }, numOfDevicesInSubnet);
+
         ThreadPoolExecutor threadsManager =
                 new ThreadPoolExecutor(20, 20, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(numOfDevicesInSubnet));
 
@@ -218,5 +226,30 @@ public class NetworkScanner {
                 (ip >> 8 & 0xff),
                 (ip >> 16 & 0xff),
                 (ip >> 24 & 0xff));
+    }
+
+    private static class DeviceScanCountDownLatch extends CountDownLatch {
+        private final OnCountDownListener onCountDownListener;
+
+        interface OnCountDownListener {
+            void onCountDown(int count);
+        }
+
+        DeviceScanCountDownLatch(OnCountDownListener onCountDownListener, int count) {
+            super(count);
+
+            this.onCountDownListener = onCountDownListener;
+        }
+
+        @Override
+        public void countDown() {
+            synchronized (this) {
+                if (onCountDownListener != null) {
+                    onCountDownListener.onCountDown((int) (getCount() - 1));
+                }
+
+                super.countDown();
+            }
+        }
     }
 }
