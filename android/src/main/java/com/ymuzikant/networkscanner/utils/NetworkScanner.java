@@ -87,8 +87,13 @@ public class NetworkScanner {
         if (numOfDevicesInSubnet <= 0) {
             Log.w(TAG, "No devices available for scan in subnet. scan aborted");
 
+            onScanEventListener.onScanCompleted(devices);
+
             return;
         }
+
+        // Initialize progress
+        onScanEventListener.onProgress(0, numOfDevicesInSubnet);
 
         int mask = buildMask(subnetPrefixLength);
 
