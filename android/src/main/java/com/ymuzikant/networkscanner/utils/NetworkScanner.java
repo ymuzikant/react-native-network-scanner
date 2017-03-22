@@ -25,6 +25,9 @@ import java.util.concurrent.TimeUnit;
 public class NetworkScanner {
     private static final String TAG = "NetworkScanner";
 
+    private static final int CORE_POOL_SIZE = 10;
+    private static final int MAXIMUM_POOL_SIZE = 25;
+
     private Ping pinger = new Ping();
     private HostNameResolver hostNameResolver = new HostNameResolver();
     private PortScanner portScanner = new PortScanner();
@@ -110,8 +113,10 @@ public class NetworkScanner {
             }
         }, numOfDevicesInSubnet);
 
-        ThreadPoolExecutor threadsManager =
-                new ThreadPoolExecutor(20, 20, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(numOfDevicesInSubnet));
+        ThreadPoolExecutor threadsManager = new ThreadPoolExecutor(
+                CORE_POOL_SIZE, MAXIMUM_POOL_SIZE,
+                10, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<Runnable>(numOfDevicesInSubnet - (MAXIMUM_POOL_SIZE - CORE_POOL_SIZE)));
 
         for (int i = 0; i < numOfDevicesInSubnet; i++) {
             incrementIP(currIPParts);
@@ -133,6 +138,8 @@ public class NetworkScanner {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        threadsManager.shutdown();
 
         // Get device details from ARP table
         ARP arp = new ARP();
