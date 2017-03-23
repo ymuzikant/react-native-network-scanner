@@ -1,5 +1,10 @@
 package com.ymuzikant.networkscanner.utils;
 
+import com.ymuzikant.networkscanner.utils.ports.PortExtraInfoFetcher;
+import com.ymuzikant.networkscanner.utils.ports.PortExtraInfoFetcherFactory;
+
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -32,5 +37,14 @@ public class PortScanner {
         }
 
         return openPorts;
+    }
+
+    public JSONObject getPortExtraInfo(String ip, int port) {
+        PortExtraInfoFetcher portHandler = PortExtraInfoFetcherFactory.getHandlerForPort(port);
+
+        if (portHandler != null) {
+            return portHandler.getPortExtraInfo(ip);
+        }
+        return null;
     }
 }

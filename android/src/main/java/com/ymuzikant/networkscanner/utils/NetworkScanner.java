@@ -7,6 +7,8 @@ import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -27,6 +29,8 @@ public class NetworkScanner {
 
     private static final int CORE_POOL_SIZE = 10;
     private static final int MAXIMUM_POOL_SIZE = 25;
+
+    private final int[] COMMON_PORTS = {80, 443, 22, 21, 25, 53, 3389, 23, 5000, 135, 139, 445, 5353, 67 ,68, 107, 110};
 
     private Ping pinger = new Ping();
     private HostNameResolver hostNameResolver = new HostNameResolver();
@@ -116,7 +120,7 @@ public class NetworkScanner {
         ThreadPoolExecutor threadsManager = new ThreadPoolExecutor(
                 CORE_POOL_SIZE, MAXIMUM_POOL_SIZE,
                 10, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<Runnable>(numOfDevicesInSubnet - (MAXIMUM_POOL_SIZE - CORE_POOL_SIZE)));
+                new ArrayBlockingQueue<Runnable>(Math.max(CORE_POOL_SIZE, numOfDevicesInSubnet - (MAXIMUM_POOL_SIZE - CORE_POOL_SIZE))));
 
         for (int i = 0; i < numOfDevicesInSubnet; i++) {
             incrementIP(currIPParts);
@@ -172,9 +176,16 @@ public class NetworkScanner {
                     networkDevice.setHostname(hostname);
 
                     // Run port scan for device
-                    ArrayList<Integer> openPorts = portScanner.scanPorts(ip, 80, 443);
+                    ArrayList<Integer> openPorts = portScanner.scanPorts(ip, COMMON_PORTS);
                     if (openPorts != null && openPorts.size() > 0) {
                         networkDevice.setOpenPorts(openPorts);
+
+                        for (Integer openPort : openPorts) {
+                            JSONObject portExtraInfo = portScanner.getPortExtraInfo(ip, openPort);
+                            if (portExtraInfo != null) {
+                                networkDevice.setPortExtraInfo(openPort, portExtraInfo);
+                            }
+                        }
                     }
 
                     devices.add(networkDevice);

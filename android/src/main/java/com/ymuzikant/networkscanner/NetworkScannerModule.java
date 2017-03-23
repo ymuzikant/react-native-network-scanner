@@ -1,16 +1,23 @@
 package com.ymuzikant.networkscanner;
 
+import android.util.Log;
+
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.ymuzikant.networkscanner.utils.NetworkDevice;
 import com.ymuzikant.networkscanner.utils.NetworkScanner;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by Yaron Muzikant on 13-Mar-17.
@@ -49,6 +56,8 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
                     WritableNativeArray devicesArray = new WritableNativeArray();
 
                     for (NetworkDevice device : devices) {
+                        Log.d(TAG, "onScanCompleted() device = [" + device.toString() + "]");
+
                         WritableNativeMap networkDeviceInfo = new WritableNativeMap();
                         networkDeviceInfo.putString("ip", device.getIP());
 
@@ -58,6 +67,28 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
 
                         if (device.getHostname() != null) {
                             networkDeviceInfo.putString("hostname", device.getHostname());
+                        }
+
+                        if (device.getOpenPorts() != null && device.getOpenPorts().size() > 0) {
+                            WritableNativeArray openPortsArray = new WritableNativeArray();
+
+                            for (Integer openPort : device.getOpenPorts()) {
+                                openPortsArray.pushInt(openPort);
+                            }
+                            networkDeviceInfo.putArray("openPorts", openPortsArray);
+                        }
+
+                        if (device.getPortExtraInfoMap() != null && device.getPortExtraInfoMap().size() > 0) {
+                            WritableNativeArray portsExtraInfoArray = new WritableNativeArray();
+
+                            for (Map.Entry<Integer, JSONObject> portExtraInfoEntry : device.getPortExtraInfoMap().entrySet()) {
+                                WritableNativeMap portExtraInfo = new WritableNativeMap();
+                                portExtraInfo.putInt("port", portExtraInfoEntry.getKey());
+                                portExtraInfo.putMap("info", jsonToMap(portExtraInfoEntry.getValue()));
+
+                                portsExtraInfoArray.pushMap(portExtraInfo);
+                            }
+                            networkDeviceInfo.putArray("openPorts", portsExtraInfoArray);
                         }
 
                         devicesArray.pushMap(networkDeviceInfo);
@@ -83,5 +114,29 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
                 eventEmitter.emit("progress", progressInfo);
             }
         });
+    }
+
+    private WritableMap jsonToMap(JSONObject jsonObject) {
+        WritableNativeMap map = new WritableNativeMap();
+
+        try {
+            if (jsonObject != null) {
+                Iterator<?> keys = jsonObject.keys();
+
+                while (keys.hasNext()) {
+                    String key = (String) keys.next();
+
+                    if (jsonObject.get(key) instanceof JSONObject) {
+                        map.putMap(key, jsonToMap(jsonObject.getJSONObject(key)));
+                    } else {
+                        map.putString(key, jsonObject.get(key).toString());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return map;
     }
 }
