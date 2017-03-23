@@ -88,7 +88,7 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
 
                                 portsExtraInfoArray.pushMap(portExtraInfo);
                             }
-                            networkDeviceInfo.putArray("openPorts", portsExtraInfoArray);
+                            networkDeviceInfo.putArray("portsInfo", portsExtraInfoArray);
                         }
 
                         devicesArray.pushMap(networkDeviceInfo);
