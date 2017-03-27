@@ -13,8 +13,9 @@ public class Ping {
         Log.d(TAG, "ping() called with: host = [" + host + "]");
 
         Runtime runtime = Runtime.getRuntime();
+        Process pingProcess = null;
         try {
-            Process pingProcess = runtime.exec("/system/bin/ping -c 1 " + host);
+            pingProcess = runtime.exec("/system/bin/ping -w 1 -c 1 " + host);
             int pingResult = pingProcess.waitFor();
 
             Log.v(TAG, "Ping " + host + " result: " + pingResult);
@@ -24,8 +25,13 @@ public class Ping {
                 return false;
             }
         } catch (Exception ex) {
-            Log.i(TAG, "Failed ping to host " + host + "[" + ex.getMessage() + "]");
+            Log.i(TAG, "Failed ping to host " + host + "[" + ex.getMessage() + "]", ex);
+        } finally {
+            if (pingProcess != null) {
+                pingProcess.destroy();
+            }
         }
+
         return false;
     }
 }
