@@ -44,8 +44,7 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
         networkScanner.scan(getReactApplicationContext(), new NetworkScanner.OnScanEventListener() {
             @Override
             public void onDeviceFound(NetworkDevice device) {
-                WritableNativeMap networkDeviceInfo = new WritableNativeMap();
-                networkDeviceInfo.putString("ip", device.getIP());
+                WritableNativeMap networkDeviceInfo = deviceToWriteableMap(device);
 
                 eventEmitter.emit("deviceFound", networkDeviceInfo);
             }
@@ -58,38 +57,7 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
                     for (NetworkDevice device : devices) {
                         Log.d(TAG, "onScanCompleted() device = [" + device.toString() + "]");
 
-                        WritableNativeMap networkDeviceInfo = new WritableNativeMap();
-                        networkDeviceInfo.putString("ip", device.getIP());
-
-                        if (device.getMac() != null) {
-                            networkDeviceInfo.putString("mac", device.getMac());
-                        }
-
-                        if (device.getHostname() != null) {
-                            networkDeviceInfo.putString("hostname", device.getHostname());
-                        }
-
-                        if (device.getOpenPorts() != null && device.getOpenPorts().size() > 0) {
-                            WritableNativeArray openPortsArray = new WritableNativeArray();
-
-                            for (Integer openPort : device.getOpenPorts()) {
-                                openPortsArray.pushInt(openPort);
-                            }
-                            networkDeviceInfo.putArray("openPorts", openPortsArray);
-                        }
-
-                        if (device.getPortExtraInfoMap() != null && device.getPortExtraInfoMap().size() > 0) {
-                            WritableNativeArray portsExtraInfoArray = new WritableNativeArray();
-
-                            for (Map.Entry<Integer, JSONObject> portExtraInfoEntry : device.getPortExtraInfoMap().entrySet()) {
-                                WritableNativeMap portExtraInfo = new WritableNativeMap();
-                                portExtraInfo.putInt("port", portExtraInfoEntry.getKey());
-                                portExtraInfo.putMap("info", jsonToMap(portExtraInfoEntry.getValue()));
-
-                                portsExtraInfoArray.pushMap(portExtraInfo);
-                            }
-                            networkDeviceInfo.putArray("portsInfo", portsExtraInfoArray);
-                        }
+                        WritableNativeMap networkDeviceInfo = deviceToWriteableMap(device);
 
                         devicesArray.pushMap(networkDeviceInfo);
                     }
@@ -114,6 +82,42 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
                 eventEmitter.emit("progress", progressInfo);
             }
         });
+    }
+
+    private WritableNativeMap deviceToWriteableMap(NetworkDevice device) {
+        WritableNativeMap networkDeviceInfo = new WritableNativeMap();
+        networkDeviceInfo.putString("ip", device.getIP());
+
+        if (device.getMac() != null) {
+            networkDeviceInfo.putString("mac", device.getMac());
+        }
+
+        if (device.getHostname() != null) {
+            networkDeviceInfo.putString("hostname", device.getHostname());
+        }
+
+        if (device.getOpenPorts() != null && device.getOpenPorts().size() > 0) {
+            WritableNativeArray openPortsArray = new WritableNativeArray();
+
+            for (Integer openPort : device.getOpenPorts()) {
+                openPortsArray.pushInt(openPort);
+            }
+            networkDeviceInfo.putArray("openPorts", openPortsArray);
+        }
+
+        if (device.getPortExtraInfoMap() != null && device.getPortExtraInfoMap().size() > 0) {
+            WritableNativeArray portsExtraInfoArray = new WritableNativeArray();
+
+            for (Map.Entry<Integer, JSONObject> portExtraInfoEntry : device.getPortExtraInfoMap().entrySet()) {
+                WritableNativeMap portExtraInfo = new WritableNativeMap();
+                portExtraInfo.putInt("port", portExtraInfoEntry.getKey());
+                portExtraInfo.putMap("info", jsonToMap(portExtraInfoEntry.getValue()));
+
+                portsExtraInfoArray.pushMap(portExtraInfo);
+            }
+            networkDeviceInfo.putArray("portsInfo", portsExtraInfoArray);
+        }
+        return networkDeviceInfo;
     }
 
     private WritableMap jsonToMap(JSONObject jsonObject) {
