@@ -17,4 +17,5 @@ android {
 
 dependencies {
     compile ('com.facebook.react:react-native:+')
+    compile ('jcifs:jcifs:1.3.17')
 }
