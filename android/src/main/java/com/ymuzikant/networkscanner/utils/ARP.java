@@ -3,7 +3,8 @@ package com.ymuzikant.networkscanner.utils;
 import android.util.Log;
 
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,16 +20,12 @@ public class ARP {
 
     public ArrayList<NetworkDevice> getDevices() {
         ArrayList<NetworkDevice> devices = new ArrayList<>();
-        Runtime runtime = Runtime.getRuntime();
         try {
-            Process arpProcess = runtime.exec("cat /proc/net/arp");
-            int arpResult = arpProcess.waitFor();
-
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(arpProcess.getInputStream()));
+            BufferedReader arpTableReader = new BufferedReader(new FileReader(new File("/proc/net/arp")));
 
             Pattern arpTableLinePattern = Pattern.compile(ARP_TABLE_LINE_REGEX);
             String arpTableLine;
-            while ((arpTableLine = stdInput.readLine()) != null) {
+            while ((arpTableLine = arpTableReader.readLine()) != null) {
                 Log.d(TAG, arpTableLine);
 
                 // Add device from arp table
