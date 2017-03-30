@@ -1,5 +1,6 @@
 package com.ymuzikant.networkscanner.utils;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -83,7 +84,9 @@ public class SNMPHandler {
             for (int i = 0; i < snmpResponse.getRequest().size(); i++) {
                 VariableBinding variableBinding = snmpResponse.getResponse().get(i);
                 try {
-                    snmpInfo.put(variableBinding.getOid().toString(), variableBinding.toValueString());
+                    snmpInfo.put(
+                            getSNMPPropertyName(variableBinding.getOid()),
+                            variableBinding.toValueString());
                 } catch (JSONException e) {
                     Log.e(TAG, "Error building snmp info JSON", e);
                 }
@@ -91,5 +94,20 @@ public class SNMPHandler {
         }
 
         return snmpInfo;
+    }
+
+    private String getSNMPPropertyName(@NonNull OID oid) {
+        switch (oid.toString()) {
+            case SNMP_OID_DEVICE_SYS_DESCR:
+                return "sysDescr";
+            case SNMP_OID_DEVICE_SYS_LOCATION:
+                return "sysLocation";
+            case SNMP_OID_DEVICE_SYS_NAME:
+                return "sysName";
+            case SNMP_OID_DEVICE_SYS_OBJECT_ID:
+                return "sysObjectID";
+            default:
+                return oid.toString().replaceAll("\\.", "_");
+        }
     }
 }
