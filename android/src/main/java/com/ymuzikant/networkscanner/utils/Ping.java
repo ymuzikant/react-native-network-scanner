@@ -17,7 +17,7 @@ public class Ping {
         try {
             // TODO: Make sure "timeout" exists on device and in the expected path (or search for it in multiple paths)
             // TODO: Make sure "ping" exists on device and in the expected path (or search for it in multiple paths)
-            pingProcess = runtime.exec("/system/bin/timeout 0.2 /system/bin/ping -w 1 -c 1 " + host);
+            pingProcess = runtime.exec("/system/bin/timeout 0.5 /system/bin/ping -w 1 -c 1 " + host);
             int pingResult = pingProcess.waitFor();
 
             Log.v(TAG, "Ping " + host + " result: " + pingResult);
