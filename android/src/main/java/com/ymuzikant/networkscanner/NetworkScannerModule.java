@@ -13,6 +13,8 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.ymuzikant.networkscanner.utils.NetworkDevice;
 import com.ymuzikant.networkscanner.utils.NetworkScanner;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -137,6 +139,8 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
 
                     if (jsonObject.get(key) instanceof JSONObject) {
                         map.putMap(key, jsonToMap(jsonObject.getJSONObject(key)));
+                    } else if (jsonObject.get(key) instanceof JSONArray) {
+                        map.putArray(key, jsonArrayToArray(jsonObject.getJSONArray(key)));
                     } else {
                         map.putString(key, jsonObject.get(key).toString());
                     }
@@ -147,5 +151,28 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
         }
 
         return map;
+    }
+
+    private WritableNativeArray jsonArrayToArray(JSONArray jsonArray) {
+        WritableNativeArray outputArray = new WritableNativeArray();
+
+        try {
+            for (int i = 0; i < jsonArray.length(); i++) {
+                Object item = jsonArray.get(i);
+
+                if (item instanceof JSONObject) {
+                    outputArray.pushMap(jsonToMap((JSONObject) item));
+                } else if (item instanceof JSONArray) {
+                    outputArray.pushArray(jsonArrayToArray((JSONArray) item));
+                } else {
+                    outputArray.pushString(item.toString());
+                }
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return outputArray;
     }
 }
