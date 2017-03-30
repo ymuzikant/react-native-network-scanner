@@ -117,6 +117,11 @@ public class NetworkScannerModule extends ReactContextBaseJavaModule {
             }
             networkDeviceInfo.putArray("portsInfo", portsExtraInfoArray);
         }
+
+        if (device.getSNMPInfo() != null) {
+            networkDeviceInfo.putMap("snmpInfo", jsonToMap(device.getSNMPInfo()));
+        }
+
         return networkDeviceInfo;
     }
 

@@ -123,4 +123,8 @@ public class NetworkDevice {
     public void setSNMPInfo(JSONObject snmpInfo) {
         this.snmpInfo = snmpInfo;
     }
+
+    public JSONObject getSNMPInfo() {
+        return snmpInfo;
+    }
 }
