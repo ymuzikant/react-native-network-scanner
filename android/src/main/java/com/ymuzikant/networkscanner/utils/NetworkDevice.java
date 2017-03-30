@@ -17,6 +17,7 @@ public class NetworkDevice {
     private String hostname;
     private ArrayList<Integer> openPorts;
     private Hashtable<Integer, JSONObject> portExtraInfoMap;
+    private JSONObject snmpInfo;
 
     public NetworkDevice(String ip, String mac) {
         this.IP = ip;
@@ -68,6 +69,10 @@ public class NetworkDevice {
                 }
                 deviceJson.put("portsInfo", portsExtraInfoJsonArr);
             }
+
+            if (snmpInfo != null) {
+                deviceJson.put("snmpInfo", snmpInfo);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -113,5 +118,9 @@ public class NetworkDevice {
 
     public Hashtable<Integer, JSONObject> getPortExtraInfoMap() {
         return portExtraInfoMap;
+    }
+
+    public void setSNMPInfo(JSONObject snmpInfo) {
+        this.snmpInfo = snmpInfo;
     }
 }

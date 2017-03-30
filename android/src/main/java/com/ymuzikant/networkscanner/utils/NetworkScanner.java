@@ -35,6 +35,7 @@ public class NetworkScanner {
     private Ping pinger = new Ping();
     private HostNameResolver hostNameResolver = new HostNameResolver();
     private PortScanner portScanner = new PortScanner();
+    private SNMPHandler snmpHandler = new SNMPHandler();
 
     public interface OnScanEventListener {
         void onDeviceFound(NetworkDevice device);
@@ -186,6 +187,12 @@ public class NetworkScanner {
                                 networkDevice.setPortExtraInfo(openPort, portExtraInfo);
                             }
                         }
+                    }
+
+                    // Fetch SNMP info
+                    JSONObject snmpInfo = snmpHandler.getSNMPInfo(ip);
+                    if (snmpInfo != null) {
+                        networkDevice.setSNMPInfo(snmpInfo);
                     }
 
                     devices.add(networkDevice);
