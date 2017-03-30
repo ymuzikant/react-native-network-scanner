@@ -30,7 +30,7 @@ public class NetworkScanner {
     private static final int CORE_POOL_SIZE = 10;
     private static final int MAXIMUM_POOL_SIZE = 25;
 
-    private final int[] COMMON_PORTS = {80, 443, 22, 21, 25, 53, 3389, 23, 5000, 135, 139, 445, 5353, 67 ,68, 107, 110};
+    private final int[] COMMON_PORTS = {80, 443, 22, 21, 25, 53, 3389, 23, 5000, 135, 139, 445, 5353, 67 ,68, 107, 110, 631};
 
     private Ping pinger = new Ping();
     private HostNameResolver hostNameResolver = new HostNameResolver();
