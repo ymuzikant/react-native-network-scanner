@@ -4,7 +4,9 @@ import android.accounts.NetworkErrorException;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.DhcpInfo;
+import android.net.nsd.NsdServiceInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -15,6 +17,7 @@ import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -36,6 +39,7 @@ public class NetworkScanner {
     private HostNameResolver hostNameResolver = new HostNameResolver();
     private PortScanner portScanner = new PortScanner();
     private SNMPHandler snmpHandler = new SNMPHandler();
+    private NsdDiscovery mNsdDiscovery;
 
     public interface OnScanEventListener {
         void onDeviceFound(NetworkDevice device);
@@ -55,6 +59,8 @@ public class NetworkScanner {
         final WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
         if (wifiManager.isWifiEnabled() && wifiManager.getConnectionInfo() != null) {
+            mNsdDiscovery = new NsdDiscovery(context);
+
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -103,6 +109,10 @@ public class NetworkScanner {
         // Initialize progress
         onScanEventListener.onProgress(0, numOfDevicesInSubnet);
 
+        // Start NSD
+        mNsdDiscovery.startDiscovery();
+
+        // Build subnet mask
         int mask = buildMask(subnetPrefixLength);
 
         int currIP = dhcp.ipAddress;
@@ -155,6 +165,23 @@ public class NetworkScanner {
                 if (arpDevice.getIP().equals(networkDevice.getIP())) {
                     networkDevice.setMac(arpDevice.getMac());
                     break;
+                }
+            }
+        }
+
+        // Get all resolved services by NSD
+        mNsdDiscovery.stopDiscovery();
+        for (NsdServiceInfo nsdServiceInfo : mNsdDiscovery.getFoundServices()) {
+            // TODO: Update devices according to found services
+
+            Log.d(TAG, "Service found [" + nsdServiceInfo + "]");
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                // TODO: Handle TXT record of resolved service
+                // http://stackoverflow.com/questions/25984894/android-mdns-txt-record
+
+                for (Map.Entry<String, byte[]> nsdServiceInfoAttributeEntry : nsdServiceInfo.getAttributes().entrySet()) {
+                    Log.d(TAG, "\t" + nsdServiceInfoAttributeEntry.getKey() + " ===> " + new String(nsdServiceInfoAttributeEntry.getValue()));
                 }
             }
         }
