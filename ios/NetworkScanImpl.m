@@ -43,7 +43,7 @@
             {
                 NSString *address = [pingOperation address];
                 NSString *resolvedName = [NetworkUtils findHostnameForIP:address];
-                resolvedName = (resolvedName != nil) ? resolvedName : @"";
+                resolvedName = (resolvedName != nil) ? resolvedName : address;
                 
                 Device *device = [[Device alloc] init];
                 [device setIp:address];
