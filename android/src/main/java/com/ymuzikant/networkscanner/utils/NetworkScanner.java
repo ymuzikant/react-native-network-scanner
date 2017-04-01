@@ -51,7 +51,7 @@ public class NetworkScanner {
         void onProgress(int progress, int total);
     }
 
-    public void scan(Context context, final OnScanEventListener onScanEventListener) {
+    public void scan(final Context context, final OnScanEventListener onScanEventListener) {
         if (onScanEventListener == null) {
             return;
         }
@@ -59,12 +59,12 @@ public class NetworkScanner {
         final WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
         if (wifiManager.isWifiEnabled() && wifiManager.getConnectionInfo() != null) {
-            mNsdDiscovery = new NsdDiscovery(context);
-
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
+                        mNsdDiscovery = new NsdDiscovery(context);
+
                         // Get subnet mask and scan all IPs in subnet
                         try {
                             DhcpInfo dhcp = wifiManager.getDhcpInfo();
