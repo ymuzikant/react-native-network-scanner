@@ -23,6 +23,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.jmdns.ServiceInfo;
+
 /**
  * Created by Yaron Muzikant on 14-Mar-17.
  */
@@ -184,6 +186,10 @@ public class NetworkScanner {
                     Log.d(TAG, "\t" + nsdServiceInfoAttributeEntry.getKey() + " ===> " + new String(nsdServiceInfoAttributeEntry.getValue()));
                 }
             }
+        }
+
+        for (ServiceInfo serviceInfo : mNsdDiscovery.getFoundServices2()) {
+            Log.d(TAG, "Service found [" + serviceInfo + "]");
         }
 
         onScanEventListener.onScanCompleted(devices);
